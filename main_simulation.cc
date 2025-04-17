@@ -6,6 +6,7 @@
 #include <chrono>
 #include <cmath>
 #include <iomanip>
+#include <sstream>
 
 int main() {
     // Simulation parameters
@@ -34,6 +35,23 @@ int main() {
     double *mean_rewards = new double[run_length]();
     double *std_rewards = new double[run_length]();
     double *opt_action_percentage = new double[run_length]();
+    
+    // Open log file for sequential results
+    std::ofstream logfile("sequential_results.log");
+    logfile << "=== Sequential Multi-armed Bandit Simulation Results ===\n";
+    logfile << "Configuration:\n";
+    logfile << "Number of arms: " << N << "\n";
+    logfile << "Run length: " << run_length << "\n";
+    logfile << "Number of runs: " << n_runs << "\n";
+    logfile << "Bandit type: " << (bandit_type == 0 ? "Bernoulli" : "Normal") << "\n";
+    logfile << "Exploration strategy: ";
+    switch(exploration_strategy) {
+        case 0: logfile << "epsilon-greedy (epsilon=" << epsilon << ")"; break;
+        case 1: logfile << "Boltzmann (T=" << T << ")"; break;
+        case 2: logfile << "UCB (c=" << c << ")"; break;
+        case 3: logfile << "Gradient bandit"; break;
+    }
+    logfile << "\n\n";
     
     std::cout << "Starting simulation with " << n_runs << " runs of " << run_length << " steps each." << std::endl;
     std::cout << "Number of arms: " << N << std::endl;
@@ -91,6 +109,12 @@ int main() {
         if (i == 0 || i == n_runs - 1) {
             std::cout << "\nTrue arm values for run " << i << ":" << std::endl;
             bandit->print_true_values();
+            
+            // Log true values
+            logfile << "\nTrue arm values for run " << i << ":\n";
+            std::stringstream ss;
+            bandit->print_true_values();
+            logfile << ss.str();
         }
         
         // Store results
@@ -103,6 +127,12 @@ int main() {
         if (i == 0 || i == n_runs - 1) {
             std::cout << "\nFinal Q values for run " << i << ":" << std::endl;
             bandit->print_q();
+            
+            // Log Q values
+            logfile << "\nFinal Q values for run " << i << ":\n";
+            std::stringstream ss;
+            bandit->print_q();
+            logfile << ss.str();
         }
         
         delete bandit;
@@ -135,6 +165,12 @@ int main() {
     std::cout << "\n==== Simulation Results ====" << std::endl;
     std::cout << "Total execution time: " << duration.count() / 1000.0 << " seconds" << std::endl;
     
+    // Log performance metrics
+    logfile << "\n=== Performance Metrics ===\n";
+    logfile << "Total execution time: " << duration.count() / 1000.0 << " seconds\n";
+    logfile << "\nAverage reward and optimal action selection over time:\n";
+    logfile << "Step\tAvg Reward\tStd Dev\t\t% Optimal Actions\n";
+    
     // Save results to file
     std::string filename = bandit_type == 0 ? "results_bernoulli.txt" : "results_normal.txt";
     std::ofstream outfile(filename);
@@ -148,6 +184,9 @@ int main() {
             std::cout << j+1 << "\t" << std::fixed << std::setprecision(4) 
                       << mean_rewards[j] << "\t\t" << std_rewards[j] << "\t\t" 
                       << opt_action_percentage[j] << "%" << std::endl;
+            logfile << j+1 << "\t" << std::fixed << std::setprecision(4) 
+                    << mean_rewards[j] << "\t\t" << std_rewards[j] << "\t\t" 
+                    << opt_action_percentage[j] << "%\n";
         }
     }
     
@@ -157,8 +196,10 @@ int main() {
                 << "\t" << opt_action_percentage[j] << "\n";
     }
     outfile.close();
+    logfile.close();
     
     std::cout << "\nFull results saved to " << filename << std::endl;
+    std::cout << "Sequential results logged to sequential_results.log" << std::endl;
     
     // Clean up
     delete[] rewards;
