@@ -40,6 +40,3 @@ add_executable(Multi_armed_bandit_RL
     src/NormalBandit.cc
     mainBernoulli.cc
     mainNormal.cc)
-
-
-target_link_libraries(mainBernoulli PRIVATE OpenMP::OpenMP_CXX)
