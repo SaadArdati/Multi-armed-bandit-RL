@@ -1,28 +1,28 @@
 === Sequential Multi-armed Bandit Simulation Results ===
 Configuration:
-Number of arms: 10
-Run length: 1000
-Number of runs: 1000
-Bandit type: Bernoulli
-Exploration strategy: epsilon-greedy (epsilon=0.1)
+Number of arms: 100
+Run length: 10000
+Number of runs: 10000
+Bandit type: Normal
+Exploration strategy: UCB (c=0.5)
 
 
 True arm values for run 0:
 
 Final Q values for run 0:
 
-True arm values for run 999:
+True arm values for run 9999:
 
-Final Q values for run 999:
+Final Q values for run 9999:
 
 === Performance Metrics ===
-Total execution time: 0.029 seconds
+Total execution time: 32.023 seconds
 
 Average reward and optimal action selection over time:
 Step	Avg Reward	Std Dev		% Optimal Actions
-1	0.8493		0.2273		9.7000%
-10	0.8462		0.2265		10.3000%
-50	0.8422		0.2319		10.3000%
-100	0.8393		0.2336		9.9000%
-500	0.8814		0.1903		13.1000%
-1000	0.9260		0.1481		18.0000%
+1	0.0217		1.4139		0.9300%
+10	-0.0097		1.4211		1.0300%
+50	-0.0031		1.4052		1.0500%
+100	-0.0165		1.3993		1.0100%
+500	2.2513		1.3123		64.3200%
+1000	2.3283		1.2296		68.5700%

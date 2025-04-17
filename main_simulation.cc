@@ -10,31 +10,37 @@
 
 int main() {
     // Simulation parameters
-    const int N = 10;               // Number of arms
-    const int run_length = 1000;    // Length of each run
-    const int n_runs = 1000;        // Number of independent runs
-    const double epsilon = 0.1;     // Exploration parameter
-    const double learning_rate = 0.1;
-    const double Qmax = 0.0;        // Initial Q value
+    const int N = 100;              // Number of arms
+    const int run_length = 10000;   // Steps per run
+    const int n_runs = 10000;       // Number of runs
+    const double epsilon = 0.1;     // Exploration rate
+    const double learning_rate = 0.1; // Increased learning rate
+    const double Qmax = 1.0;        // Initial Q value (optimistic initialization)
 
     // Bandit type (0 for Bernoulli, 1 for Normal)
-    const int bandit_type = 0;
+    const int bandit_type = 1;      // Using Normal bandit
     
     // Exploration strategy
     // 0: epsilon-greedy, 1: Boltzmann, 2: UCB, 3: gradient bandit
-    const int exploration_strategy = 0;
+    const int exploration_strategy = 2; // Using UCB
     
     // Additional parameters for specific strategies
-    const double c = 2.0;       // UCB parameter
-    const double T = 0.5;       // Temperature for Boltzmann
-    const double var = 1.0;     // Variance for Normal bandit
+    const double c = 0.5;       // Reduced UCB parameter for more balanced exploration
+    const double T = 0.3;       // Temperature for Boltzmann
+    const double var = 1.0;     // Reduced variance for Normal bandit
 
     // Arrays to store results
-    double *rewards = new double[n_runs * run_length];
-    int *optimal_actions = new int[n_runs * run_length];
+    double *rewards = new double[n_runs * run_length]();
+    int *optimal_actions = new int[n_runs * run_length]();
     double *mean_rewards = new double[run_length]();
     double *std_rewards = new double[run_length]();
     double *opt_action_percentage = new double[run_length]();
+    
+    // Initialize arrays
+    for (int i = 0; i < n_runs * run_length; i++) {
+        rewards[i] = 0.0;
+        optimal_actions[i] = 0;
+    }
     
     // Open log file for sequential results
     std::ofstream logfile("sequential_results.log");
@@ -140,6 +146,11 @@ int main() {
     
     // Calculate statistics
     for (int j = 0; j < run_length; j++) {
+        // Reset accumulators for this time step
+        mean_rewards[j] = 0.0;
+        std_rewards[j] = 0.0;
+        opt_action_percentage[j] = 0.0;
+        
         // Calculate mean reward at each time step
         for (int i = 0; i < n_runs; i++) {
             mean_rewards[j] += rewards[i * run_length + j];
@@ -154,7 +165,7 @@ int main() {
         for (int i = 0; i < n_runs; i++) {
             std_rewards[j] += std::pow(rewards[i * run_length + j] - mean_rewards[j], 2);
         }
-        std_rewards[j] = std::sqrt(std_rewards[j] / n_runs);
+        std_rewards[j] = std::sqrt(std_rewards[j] / (n_runs - 1)); // Use n-1 for sample standard deviation
     }
     
     // End timing

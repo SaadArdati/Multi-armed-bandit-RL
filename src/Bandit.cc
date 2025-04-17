@@ -37,12 +37,14 @@ int Bandit::take_action() {
 
 int Bandit::UCB(const int t, const double c) {
     int action = 0;
+    const double t_float = std::max(1.0, static_cast<double>(t));
 
     for (int j = 0; j < N; j++) {
         if (nt[j] != 0) {
-            UCBvalues[j] = q[j] + c * sqrt(log(float(t)) / nt[j]);
+            UCBvalues[j] = q[j] + c * std::sqrt(std::log(t_float) / nt[j]);
         } else {
-            UCBvalues[j] = 10000;
+            // Initialize with optimistic value based on maximum possible reward
+            UCBvalues[j] = 1.0 + c * std::sqrt(std::log(t_float));
         }
     }
     action = std::distance(UCBvalues, std::max_element(UCBvalues, UCBvalues + N));
