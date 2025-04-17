@@ -14,8 +14,8 @@ int main() {
     const int run_length = 10000;   // Steps per run
     const int n_runs = 10000;       // Number of runs
     const double epsilon = 0.1;     // Exploration rate
-    const double learning_rate = 0.1; // Increased learning rate
-    const double Qmax = 1.0;        // Initial Q value (optimistic initialization)
+    const double learning_rate = 0.1; // Learning rate
+    const double Qmax = 0.0;        // Initial Q value
 
     // Bandit type (0 for Bernoulli, 1 for Normal)
     const int bandit_type = 1;      // Using Normal bandit
@@ -25,9 +25,9 @@ int main() {
     const int exploration_strategy = 2; // Using UCB
     
     // Additional parameters for specific strategies
-    const double c = 0.5;       // Reduced UCB parameter for more balanced exploration
-    const double T = 0.3;       // Temperature for Boltzmann
-    const double var = 1.0;     // Reduced variance for Normal bandit
+    const double c = 0.1;       // UCB parameter
+    const double T = 0.1;       // Temperature for Boltzmann
+    const double var = 1.0;     // Variance for Normal bandit
 
     // Arrays to store results
     double *rewards = new double[n_runs * run_length]();
@@ -147,25 +147,30 @@ int main() {
     // Calculate statistics
     for (int j = 0; j < run_length; j++) {
         // Reset accumulators for this time step
-        mean_rewards[j] = 0.0;
-        std_rewards[j] = 0.0;
-        opt_action_percentage[j] = 0.0;
-        
-        // Calculate mean reward at each time step
+        double sum_rewards = 0.0;
+        double sum_squared_rewards = 0.0;
+        double sum_optimal_actions = 0.0;
+        int num_samples = 0;
+
         for (int i = 0; i < n_runs; i++) {
-            mean_rewards[j] += rewards[i * run_length + j];
+            double reward = rewards[i * run_length + j];
+            sum_rewards += reward;
+            sum_squared_rewards += reward * reward;
             if (optimal_actions[i * run_length + j] == 1) {
-                opt_action_percentage[j] += 1.0;
+                sum_optimal_actions += 1.0;
             }
+            num_samples++;
         }
-        mean_rewards[j] /= n_runs;
-        opt_action_percentage[j] = (opt_action_percentage[j] / n_runs) * 100.0; // Convert to percentage
-        
-        // Calculate standard deviation
-        for (int i = 0; i < n_runs; i++) {
-            std_rewards[j] += std::pow(rewards[i * run_length + j] - mean_rewards[j], 2);
+
+        // Calculate statistics for this time step
+        mean_rewards[j] = sum_rewards / num_samples;
+        if (num_samples > 1) {
+            double variance = (sum_squared_rewards - (sum_rewards * sum_rewards) / num_samples) / (num_samples - 1);
+            std_rewards[j] = std::sqrt(variance);
+        } else {
+            std_rewards[j] = 0.0;
         }
-        std_rewards[j] = std::sqrt(std_rewards[j] / (n_runs - 1)); // Use n-1 for sample standard deviation
+        opt_action_percentage[j] = (sum_optimal_actions / num_samples) * 100.0;
     }
     
     // End timing

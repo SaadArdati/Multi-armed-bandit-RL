@@ -1,16 +1,15 @@
 #include "NormalBandit.h"
-#include <random>
 
-NormalBandit::NormalBandit(const int n, const double e, const double l, const double v,
-                           const double Qmax): Bandit(n, e, l), var{v} {
-    static std::random_device rd;
-    static std::mt19937 generator(rd());
-    std::normal_distribution<double> distribution(0, var);
+// Static random number generator
+static std::default_random_engine generator;
+static std::normal_distribution<double> distribution(0, 1);
+
+NormalBandit::NormalBandit(const int n, double e, double l, double v, double Qmax): Bandit(n, e, l), var{v} {
     
     for (int i=0; i<N; i++){
-        true_values[i] = distribution(generator);
+        true_values[i] = distribution(generator) * var;  // Scale by variance
         q[i] = Qmax;
-        UCBvalues[i] = 10000;
+        UCBvalues[i] = 10.0;  // More optimistic initial value
         nt[i] = 0;
         preferences[i] = 0;
         pii[i] = 0;
@@ -18,9 +17,7 @@ NormalBandit::NormalBandit(const int n, const double e, const double l, const do
     avg_reward = 0;
 };
 
-double NormalBandit::sample_return(const int a){
-    static std::random_device rd;
-    static std::mt19937 generator(rd());
-    std::normal_distribution<double> distribution(true_values[a], var);
-    return distribution(generator);
+double NormalBandit::sample_return(int a){
+    // Use smaller noise variance (0.1 * var) for rewards
+    return true_values[a] + distribution(generator) * 0.1 * var;
 };

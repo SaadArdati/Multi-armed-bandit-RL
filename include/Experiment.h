@@ -16,7 +16,7 @@ class Experiment{
         //std::vector<double> re;
         //std::vector<double> opa;
         
-    Experiment(const double e, const double l, const int rl) {
+    Experiment(double e, double l, int rl) {
         epsilon = e;
         learning_rate = l;
         run_length = rl;

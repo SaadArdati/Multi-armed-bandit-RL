@@ -4,7 +4,7 @@ Number of arms: 100
 Run length: 10000
 Number of runs: 10000
 Bandit type: Normal
-Exploration strategy: UCB (c=0.5)
+Exploration strategy: UCB (c=0.1)
 
 
 True arm values for run 0:
@@ -16,13 +16,13 @@ True arm values for run 9999:
 Final Q values for run 9999:
 
 === Performance Metrics ===
-Total execution time: 32.023 seconds
+Total execution time: 30.814 seconds
 
 Average reward and optimal action selection over time:
 Step	Avg Reward	Std Dev		% Optimal Actions
-1	0.0217		1.4139		0.9300%
-10	-0.0097		1.4211		1.0300%
-50	-0.0031		1.4052		1.0500%
-100	-0.0165		1.3993		1.0100%
-500	2.2513		1.3123		64.3200%
-1000	2.3283		1.2296		68.5700%
+1	-0.0242		1.0122		1.1100%
+10	0.0109		1.0048		1.1600%
+50	-0.0014		1.0147		1.1100%
+100	-0.0216		1.0097		0.8700%
+500	2.5111		0.4440		97.9300%
+1000	2.5114		0.4455		98.4900%
