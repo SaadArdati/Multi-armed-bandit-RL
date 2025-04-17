@@ -16,20 +16,20 @@ The sequential implementation was tested with the following configuration:
 
 1. **Execution Time**: 0.045 seconds
 2. **Average Reward Progression**:
-   - Step 1: 0.8493
-   - Step 10: 0.8493
-   - Step 50: 0.8493
-   - Step 100: 0.8493
-   - Step 500: 0.8493
-   - Step 1000: 0.9260
+    - Step 1: 0.8493
+    - Step 10: 0.8493
+    - Step 50: 0.8493
+    - Step 100: 0.8493
+    - Step 500: 0.8493
+    - Step 1000: 0.9260
 
 3. **Optimal Action Selection**:
-   - Step 1: 9.7%
-   - Step 10: 9.7%
-   - Step 50: 9.7%
-   - Step 100: 9.7%
-   - Step 500: 9.7%
-   - Step 1000: 18.0%
+    - Step 1: 9.7%
+    - Step 10: 9.7%
+    - Step 50: 9.7%
+    - Step 100: 9.7%
+    - Step 500: 9.7%
+    - Step 1000: 18.0%
 
 ## Parallelization Plans
 
@@ -37,17 +37,17 @@ The sequential implementation was tested with the following configuration:
 - Plan to parallelize the main simulation loop using OpenMP
 - Expected speedup: Linear with number of cores
 - Key metrics to track:
-  - Speedup ratio
-  - Memory usage
-  - Load balancing
+    - Speedup ratio
+    - Memory usage
+    - Load balancing
 
 ### MPI Implementation
 - Plan to distribute runs across multiple nodes
 - Expected speedup: Linear with number of nodes
 - Key metrics to track:
-  - Communication overhead
-  - Load balancing
-  - Scalability
+    - Communication overhead
+    - Load balancing
+    - Scalability
 
 ## Building and Running
 
@@ -103,7 +103,7 @@ To compile Gaussian Bandit code use:
 make -f Makefile.gaus
 ```
 
-run the executable with `./a.out` and insert the requested parameters. 
+run the executable with `./a.out` and insert the requested parameters.
 
 
 In the same way, to compile Bernoulli Bandit code use:
