@@ -5,7 +5,7 @@ static std::default_random_engine generator;
 static std::normal_distribution<double> distribution(0, 1);
 
 NormalBandit::NormalBandit(const int n, double e, double l, double v, double Qmax): Bandit(n, e, l), var{v} {
-    
+    #pragma omp parallel for
     for (int i=0; i<N; i++){
         true_values[i] = distribution(generator) * var;  // Scale by variance
         q[i] = Qmax;

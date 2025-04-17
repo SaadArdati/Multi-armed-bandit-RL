@@ -1,6 +1,23 @@
 CXX = g++
 CXXFLAGS = -std=c++14 -Wall -O2 -Iinclude
 
+# OpenMP configuration for macOS
+ifeq ($(shell uname), Darwin)
+    # macOS specific OpenMP configuration
+    OPENMP_FLAGS = -Xpreprocessor -fopenmp
+    OPENMP_LIBS = -L/opt/homebrew/opt/libomp/lib -lomp
+    INCLUDES = -I/opt/homebrew/opt/libomp/include
+else
+    # Linux/other Unix systems
+    OPENMP_FLAGS = -fopenmp
+    OPENMP_LIBS = -fopenmp
+    INCLUDES = 
+endif
+
+# Combine all flags
+CXXFLAGS += $(OPENMP_FLAGS) $(INCLUDES)
+LDFLAGS = $(OPENMP_LIBS)
+
 SRC_DIR = src
 SRC_FILES = $(SRC_DIR)/Bandit.cc $(SRC_DIR)/BernoulliBandit.cc $(SRC_DIR)/Experiment.cc $(SRC_DIR)/NormalBandit.cc
 OBJ_FILES = $(SRC_FILES:.cc=.o)
@@ -15,7 +32,7 @@ all: bandit_simulation
 
 # Build the simulation executable
 bandit_simulation: $(OBJ_FILES) main_simulation.o
-	$(CXX) $(CXXFLAGS) -o $@ $^
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 # Compile main_simulation.cc
 main_simulation.o: main_simulation.cc
@@ -23,7 +40,7 @@ main_simulation.o: main_simulation.cc
 
 # Clean build files
 clean:
-	rm -f $(OBJ_FILES) main_simulation.o bandit_simulation results_*.txt
+	rm -f $(OBJ_FILES) main_simulation.o bandit_simulation results_*.txt openmp_results.log
 
 # Run the simulation
 run: bandit_simulation

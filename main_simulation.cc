@@ -7,6 +7,31 @@
 #include <cmath>
 #include <iomanip>
 #include <sstream>
+#include <omp.h>
+#include <vector>
+#include <algorithm>
+
+// Simple aligned vector implementation
+template<typename T>
+class AlignedVector {
+private:
+    std::vector<T> data;
+    static constexpr size_t alignment = 64; // Cache line size
+
+public:
+    AlignedVector(size_t n) : data(n, T(0)) {
+        // Ensure vector is aligned
+        if (reinterpret_cast<uintptr_t>(data.data()) % alignment != 0) {
+            throw std::runtime_error("Vector not properly aligned");
+        }
+    }
+    
+    T& operator[](size_t i) { return data[i]; }
+    const T& operator[](size_t i) const { return data[i]; }
+    T* begin() { return data.data(); }
+    T* end() { return data.data() + data.size(); }
+    size_t size() const { return data.size(); }
+};
 
 int main() {
     // Simulation parameters
@@ -29,26 +54,25 @@ int main() {
     const double T = 0.1;       // Temperature for Boltzmann
     const double var = 1.0;     // Variance for Normal bandit
 
-    // Arrays to store results
-    double *rewards = new double[n_runs * run_length]();
-    int *optimal_actions = new int[n_runs * run_length]();
-    double *mean_rewards = new double[run_length]();
-    double *std_rewards = new double[run_length]();
-    double *opt_action_percentage = new double[run_length]();
+    // Get number of threads
+    const int num_threads = omp_get_max_threads();
     
-    // Initialize arrays
-    for (int i = 0; i < n_runs * run_length; i++) {
-        rewards[i] = 0.0;
-        optimal_actions[i] = 0;
+    // Use aligned vectors for better vectorization
+    std::vector<AlignedVector<double>> thread_rewards;
+    std::vector<AlignedVector<int>> thread_optimal_actions;
+    for (int i = 0; i < num_threads; ++i) {
+        thread_rewards.emplace_back(run_length);
+        thread_optimal_actions.emplace_back(run_length);
     }
-    
-    // Open log file for sequential results
-    std::ofstream logfile("sequential_results.log");
-    logfile << "=== Sequential Multi-armed Bandit Simulation Results ===\n";
+
+    // Open log file for OpenMP results
+    std::ofstream logfile("openmp_results.log");
+    logfile << "=== OpenMP Multi-armed Bandit Simulation Results ===\n";
     logfile << "Configuration:\n";
     logfile << "Number of arms: " << N << "\n";
     logfile << "Run length: " << run_length << "\n";
     logfile << "Number of runs: " << n_runs << "\n";
+    logfile << "Number of threads: " << num_threads << "\n";
     logfile << "Bandit type: " << (bandit_type == 0 ? "Bernoulli" : "Normal") << "\n";
     logfile << "Exploration strategy: ";
     switch(exploration_strategy) {
@@ -74,103 +98,105 @@ int main() {
     // Start timing
     auto start_time = std::chrono::high_resolution_clock::now();
     
-    // Run simulations
-    for (int i = 0; i < n_runs; i++) {
-        if (i % 100 == 0) {
-            std::cout << "Run " << i << " of " << n_runs << std::endl;
-        }
+    // Run simulations in parallel with dynamic scheduling
+    const int chunk_size = std::max(1, n_runs / (num_threads * 4)); // Dynamic chunk size
+    #pragma omp parallel
+    {
+        const int thread_id = omp_get_thread_num();
         
-        // Create bandit based on type
-        Bandit* bandit;
-        if (bandit_type == 0) {
-            bandit = new BernoulliBandit(N, epsilon, learning_rate, Qmax);
-        } else {
-            bandit = new NormalBandit(N, epsilon, learning_rate, var, Qmax);
-        }
-        
-        // Create experiment
-        Experiment experiment(epsilon, learning_rate, run_length);
-        
-        // Run experiment with selected strategy
-        switch(exploration_strategy) {
-            case 0:
-                experiment.single_run(*bandit);
-                break;
-            case 1:
-                experiment.single_run_Boltzmann(*bandit, T);
-                break;
-            case 2:
-                experiment.single_run_UCB(*bandit, c);
-                break;
-            case 3:
-                experiment.single_run_gradient(*bandit);
-                break;
-        }
-        
-        // Get results
-        double* run_rewards = experiment.get_returns();
-        int* run_optimal = experiment.get_opt_actions();
-        
-        // Print true values for first and last run
-        if (i == 0 || i == n_runs - 1) {
-            std::cout << "\nTrue arm values for run " << i << ":" << std::endl;
-            bandit->print_true_values();
+        #pragma omp for schedule(dynamic, chunk_size)
+        for (int i = 0; i < n_runs; i++) {
+            if (i % 100 == 0) {
+                #pragma omp critical
+                {
+                    std::cout << "Run " << i << " of " << n_runs << " (Thread " << thread_id << ")" << std::endl;
+                }
+            }
             
-            // Log true values
-            logfile << "\nTrue arm values for run " << i << ":\n";
-            std::stringstream ss;
-            bandit->print_true_values();
-            logfile << ss.str();
-        }
-        
-        // Store results
-        for (int j = 0; j < run_length; j++) {
-            rewards[i * run_length + j] = run_rewards[j];
-            optimal_actions[i * run_length + j] = run_optimal[j];
-        }
-        
-        // Print final Q values for first and last run
-        if (i == 0 || i == n_runs - 1) {
-            std::cout << "\nFinal Q values for run " << i << ":" << std::endl;
-            bandit->print_q();
+            // Create bandit based on type
+            Bandit* bandit;
+            if (bandit_type == 0) {
+                bandit = new BernoulliBandit(N, epsilon, learning_rate, Qmax);
+            } else {
+                bandit = new NormalBandit(N, epsilon, learning_rate, var, Qmax);
+            }
             
-            // Log Q values
-            logfile << "\nFinal Q values for run " << i << ":\n";
-            std::stringstream ss;
-            bandit->print_q();
-            logfile << ss.str();
+            // Create experiment
+            Experiment experiment(epsilon, learning_rate, run_length);
+            
+            // Run experiment with selected strategy
+            switch(exploration_strategy) {
+                case 0:
+                    experiment.single_run(*bandit);
+                    break;
+                case 1:
+                    experiment.single_run_Boltzmann(*bandit, T);
+                    break;
+                case 2:
+                    experiment.single_run_UCB(*bandit, c);
+                    break;
+                case 3:
+                    experiment.single_run_gradient(*bandit);
+                    break;
+            }
+            
+            // Get results
+            double* run_rewards = experiment.get_returns();
+            int* run_optimal = experiment.get_opt_actions();
+            
+            // Store results in thread-local storage with vectorized operations
+            #pragma omp simd
+            for (int j = 0; j < run_length; j++) {
+                thread_rewards[thread_id][j] += run_rewards[j];
+                thread_optimal_actions[thread_id][j] += run_optimal[j];
+            }
+
+            // Print and log values for first and last run
+            if (i == 0 || i == n_runs - 1) {
+                #pragma omp critical
+                {
+                    std::cout << "\nTrue arm values for run " << i << ":" << std::endl;
+                    bandit->print_true_values();
+                    logfile << "\nTrue arm values for run " << i << ":\n";
+                    bandit->print_true_values();
+                    
+                    std::cout << "\nFinal Q values for run " << i << ":" << std::endl;
+                    bandit->print_q();
+                    logfile << "\nFinal Q values for run " << i << ":\n";
+                    bandit->print_q();
+                }
+            }
+            
+            delete bandit;
         }
-        
-        delete bandit;
     }
     
-    // Calculate statistics
+    // Combine results from all threads using parallel reduction
+    AlignedVector<double> mean_rewards(run_length);
+    AlignedVector<double> std_rewards(run_length);
+    AlignedVector<double> opt_action_percentage(run_length);
+    
+    #pragma omp parallel for schedule(static)
     for (int j = 0; j < run_length; j++) {
-        // Reset accumulators for this time step
         double sum_rewards = 0.0;
         double sum_squared_rewards = 0.0;
         double sum_optimal_actions = 0.0;
-        int num_samples = 0;
-
-        for (int i = 0; i < n_runs; i++) {
-            double reward = rewards[i * run_length + j];
-            sum_rewards += reward;
-            sum_squared_rewards += reward * reward;
-            if (optimal_actions[i * run_length + j] == 1) {
-                sum_optimal_actions += 1.0;
-            }
-            num_samples++;
+        
+        #pragma omp simd reduction(+:sum_rewards,sum_squared_rewards,sum_optimal_actions)
+        for (int t = 0; t < num_threads; t++) {
+            sum_rewards += thread_rewards[t][j];
+            sum_squared_rewards += thread_rewards[t][j] * thread_rewards[t][j];
+            sum_optimal_actions += thread_optimal_actions[t][j];
         }
-
-        // Calculate statistics for this time step
-        mean_rewards[j] = sum_rewards / num_samples;
-        if (num_samples > 1) {
-            double variance = (sum_squared_rewards - (sum_rewards * sum_rewards) / num_samples) / (num_samples - 1);
+        
+        mean_rewards[j] = sum_rewards / n_runs;
+        if (n_runs > 1) {
+            double variance = (sum_squared_rewards - (sum_rewards * sum_rewards) / n_runs) / (n_runs - 1);
             std_rewards[j] = std::sqrt(variance);
         } else {
             std_rewards[j] = 0.0;
         }
-        opt_action_percentage[j] = (sum_optimal_actions / num_samples) * 100.0;
+        opt_action_percentage[j] = (sum_optimal_actions / n_runs) * 100.0;
     }
     
     // End timing
@@ -215,14 +241,7 @@ int main() {
     logfile.close();
     
     std::cout << "\nFull results saved to " << filename << std::endl;
-    std::cout << "Sequential results logged to sequential_results.log" << std::endl;
-    
-    // Clean up
-    delete[] rewards;
-    delete[] optimal_actions;
-    delete[] mean_rewards;
-    delete[] std_rewards;
-    delete[] opt_action_percentage;
+    std::cout << "OpenMP results logged to openmp_results.log" << std::endl;
     
     return 0;
 } 

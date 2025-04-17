@@ -5,6 +5,7 @@ void Experiment::single_run(Bandit &b){
     int a = 0;
     double r = 0;
 
+    #pragma omp parallel for private(a, r)
     for (int j=0; j<run_length; j++){
         a = b.take_action();
         opt_actions[j] = b.get_best_action();
@@ -20,6 +21,7 @@ void Experiment::single_run_UCB(Bandit &b, double c){
     int a = 0;
     double r = 0;
 
+    #pragma omp parallel for private(a, r)
     for (int j=0; j<run_length; j++){
         a = b.UCB(j, c);
         opt_actions[j] = b.get_best_action();
@@ -35,6 +37,7 @@ void Experiment::single_run_Boltzmann(Bandit &b, double T){
     int a = 0;
     double r = 0;
 
+    #pragma omp parallel for private(a, r)
     for (int j=0; j<run_length; j++){
         a = b.Boltzmann_exploration(T);
         opt_actions[j] = b.get_best_action();
@@ -51,6 +54,7 @@ void Experiment::single_run_gradient(Bandit &b){
     int a = 0;
     double r = 0;
 
+    #pragma omp parallel for private(a, r)
     for (int j=0; j<run_length; j++){
         a = b.gradientBanditAction();
         //std::cout<<"qua\n";

@@ -1,5 +1,6 @@
 #include "Bandit.h"
 #include <algorithm>
+#include <omp.h>
 
 Bandit::Bandit(const int n, double e, double l) {
     N = n;
@@ -38,6 +39,7 @@ int Bandit::UCB(int t, double c){
     int action = 0;
     const double t_float = std::max(1.0, static_cast<double>(t));
 
+    #pragma omp parallel for
     for (int j=0; j<N; j++){
         if (nt[j] != 0){
             double alpha = 1.0 / std::sqrt(nt[j]);
@@ -60,13 +62,13 @@ int Bandit::UCB(int t, double c){
 };
 
 int Bandit::Boltzmann_exploration(double T){
-
     int action = 0;
     double max_val = 0;
     double denom = 0;
 
     std::vector<double> weights;
 
+    #pragma omp parallel for reduction(max:max_val)
     for (int i=0; i<N; i++){
         q_temperature[i] = q[i]/T;
         if (q[i] > max_val){
@@ -74,10 +76,12 @@ int Bandit::Boltzmann_exploration(double T){
         }
     }
 
+    #pragma omp parallel for reduction(+:denom)
     for (int i=0; i<N; i++){
         denom += exp(q_temperature[i] - max_val);
     }
 
+    #pragma omp parallel for
     for (int i=0; i<N; i++){
         weights.push_back(exp(q_temperature[i] - max_val)/denom);
     }
@@ -92,23 +96,21 @@ int Bandit::Boltzmann_exploration(double T){
         best_action = 1;
     } else { best_action = 0; }
 
-    //nt[action] += 1;
-
     return action;
-
 };
 
 int Bandit::gradientBanditAction(){
-
     double denom = 0;
     int action;
 
     std::vector<double> pi;
 
+    #pragma omp parallel for reduction(+:denom)
     for (int i=0; i<N; i++){
         denom += exp(preferences[i]);
     }
 
+    #pragma omp parallel for
     for (int i=0; i<N; i++){
         pii[i] = exp(preferences[i])/denom;
         pi.push_back(exp(preferences[i])/denom);
@@ -125,7 +127,6 @@ int Bandit::gradientBanditAction(){
     } else { best_action = 0; }
 
     return action;
-
 };
 
 void Bandit::print_q() const noexcept {
@@ -177,6 +178,7 @@ void Bandit::update_avg_reward(int n, double r){
 }
 
 void Bandit::update_action_preferences(double r, int a){
+    #pragma omp parallel for
     for (int i=0; i<N; i++){
         if (i==a){
             preferences[i] += learning_rate*(r-avg_reward)*(1-pii[i]);

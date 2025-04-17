@@ -1,7 +1,7 @@
 #include "BernoulliBandit.h"
 
 BernoulliBandit::BernoulliBandit(const int n, double e, double l, double Qmax): Bandit(n, e, l) {
-
+    #pragma omp parallel for
     for (int i=0; i<N; i++){
         true_values[i] = ((double) rand() / (RAND_MAX)); // in questo case true_values e` p_a, la probab di ottentere 1
         //std::cout<<"true values t["<<i<<"]="<<true_values[i]<<std::endl;

@@ -19,17 +19,16 @@ if(APPLE)
     include_directories("/opt/homebrew/opt/libomp/include")
 endif()
 
-
 find_package(OpenMP REQUIRED)
 find_package(MPI REQUIRED)
 
 set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
 set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
 
-
 include_directories(include)
 
-add_executable(Multi_armed_bandit_RL
+# Add main simulation executable
+add_executable(main_simulation
     include/Bandit.h
     include/BernoulliBandit.h
     include/Experiment.h
@@ -38,5 +37,34 @@ add_executable(Multi_armed_bandit_RL
     src/BernoulliBandit.cc
     src/Experiment.cc
     src/NormalBandit.cc
-    mainBernoulli.cc
+    main_simulation.cc)
+
+# Link OpenMP to main simulation
+target_link_libraries(main_simulation PRIVATE OpenMP::OpenMP_CXX)
+
+# Add other executables
+add_executable(mainBernoulli
+    include/Bandit.h
+    include/BernoulliBandit.h
+    include/Experiment.h
+    include/NormalBandit.h
+    src/Bandit.cc
+    src/BernoulliBandit.cc
+    src/Experiment.cc
+    src/NormalBandit.cc
+    mainBernoulli.cc)
+
+add_executable(mainNormal
+    include/Bandit.h
+    include/BernoulliBandit.h
+    include/Experiment.h
+    include/NormalBandit.h
+    src/Bandit.cc
+    src/BernoulliBandit.cc
+    src/Experiment.cc
+    src/NormalBandit.cc
     mainNormal.cc)
+
+# Link OpenMP to other executables
+target_link_libraries(mainBernoulli PRIVATE OpenMP::OpenMP_CXX)
+target_link_libraries(mainNormal PRIVATE OpenMP::OpenMP_CXX)
