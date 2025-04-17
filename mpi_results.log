@@ -1,0 +1,22 @@
+=== Parallel Multi-armed Bandit Simulation Results ===
+Number of MPI processes: 4
+Configuration:
+Number of arms: 100
+Run length: 10000
+Total number of runs: 10000
+Local runs per process: 2500
+Bandit type: Normal
+Exploration strategy: UCB (c=0.1)
+
+
+=== Performance Metrics ===
+Total execution time: 8.01251 seconds
+
+Average reward and optimal action selection over time:
+Step	Avg Reward	Std Dev		% Optimal Actions
+1	-0.0473		1.0205		1.0000%
+10	-0.0025		1.0086		1.1600%
+50	-0.0052		1.0444		1.4400%
+100	-0.0364		1.0017		0.7600%
+500	2.5107		0.4446		97.6000%
+1000	2.5108		0.4396		98.1200%

@@ -1,11 +1,11 @@
-CXX = g++
+CXX = mpic++
 CXXFLAGS = -std=c++14 -Wall -O2 -Iinclude
 
 SRC_DIR = src
 SRC_FILES = $(SRC_DIR)/Bandit.cc $(SRC_DIR)/BernoulliBandit.cc $(SRC_DIR)/Experiment.cc $(SRC_DIR)/NormalBandit.cc
 OBJ_FILES = $(SRC_FILES:.cc=.o)
 
-.PHONY: all clean run
+.PHONY: all clean run run_mpi
 
 all: bandit_simulation
 
@@ -23,8 +23,12 @@ main_simulation.o: main_simulation.cc
 
 # Clean build files
 clean:
-	rm -f $(OBJ_FILES) main_simulation.o bandit_simulation results_*.txt
+	rm -f $(OBJ_FILES) main_simulation.o bandit_simulation results_*.txt sequential_results.log
 
-# Run the simulation
+# Run the simulation sequentially
 run: bandit_simulation
-	./bandit_simulation 
+	./bandit_simulation
+
+# Run the simulation with MPI
+run_mpi: bandit_simulation
+	mpirun -np 4 ./bandit_simulation 
