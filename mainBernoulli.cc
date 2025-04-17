@@ -33,21 +33,21 @@ int main(){
         return -1;
     }
 
-    double epsilon = 0.05;
-    double learning_rate = 0.7;
-    double c = 0.01;
-    double T = 1.;
+    const double epsilon = 0.05;
+    const double learning_rate = 0.7;
+    const double c = 0.01;
+    const double T = 1.;
 
     double *re;
     int *op;
     double *ret = new double[n_runs*run_length];
     int *opt_action = new int[n_runs*run_length];
     double *means = new double[run_length]();
-    double *means1 = new double[run_length]();
+    const double *means1 = new double[run_length]();
     double *percentage_best_action = new double[run_length]();
     double *stddev = new double[run_length]();
 
-    double Qmax = 0.;
+    const double Qmax = 0.;
     std::ofstream myfile;
     myfile.open ("data_bernoulli.txt");
     myfile << "step   first_run   mean_reward_runs   std_reward_runs   percentage_opt_action\n";

@@ -3,3 +3,9 @@
 ~.o
 ~.txt
 .ipynb_checkpoints/
+*.o
+bandit_simulation
+data_normal.txt
+results_bernoulli.txt
+.idea/
+cmake-build-debug

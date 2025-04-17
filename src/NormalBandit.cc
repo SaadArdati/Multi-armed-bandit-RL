@@ -1,7 +1,7 @@
 #include "NormalBandit.h"
 
-NormalBandit::NormalBandit(const int n, double e, double l, double v, double Qmax): Bandit(n, e, l), var{v} {
-    
+NormalBandit::NormalBandit(const int n, const double e, const double l, const double v,
+                           const double Qmax): Bandit(n, e, l), var{v} {
     std::default_random_engine generator;
     for (int i=0; i<N; i++){
         std::normal_distribution<double> distribution(0, var);
@@ -13,10 +13,9 @@ NormalBandit::NormalBandit(const int n, double e, double l, double v, double Qma
         pii[i] = 0;
     }
     avg_reward = 0;
-
 };
 
-double NormalBandit::sample_return(int a){
+double NormalBandit::sample_return(const int a){
     
     double r = 0;
     std::default_random_engine generator;

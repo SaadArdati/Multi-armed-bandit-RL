@@ -1,0 +1,30 @@
+CXX = g++
+CXXFLAGS = -std=c++14 -Wall -O2 -Iinclude
+
+SRC_DIR = src
+SRC_FILES = $(SRC_DIR)/Bandit.cc $(SRC_DIR)/BernoulliBandit.cc $(SRC_DIR)/Experiment.cc $(SRC_DIR)/NormalBandit.cc
+OBJ_FILES = $(SRC_FILES:.cc=.o)
+
+.PHONY: all clean run
+
+all: bandit_simulation
+
+# Build object files
+%.o: %.cc
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Build the simulation executable
+bandit_simulation: $(OBJ_FILES) main_simulation.o
+	$(CXX) $(CXXFLAGS) -o $@ $^
+
+# Compile main_simulation.cc
+main_simulation.o: main_simulation.cc
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Clean build files
+clean:
+	rm -f $(OBJ_FILES) main_simulation.o bandit_simulation results_*.txt
+
+# Run the simulation
+run: bandit_simulation
+	./bandit_simulation 

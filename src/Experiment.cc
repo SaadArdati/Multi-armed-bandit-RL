@@ -1,11 +1,10 @@
 #include "Experiment.h"
 
-void Experiment::single_run(Bandit &b){
-
+void Experiment::single_run(Bandit &b) {
     int a = 0;
     double r = 0;
 
-    for (int j=0; j<run_length; j++){
+    for (int j = 0; j < run_length; j++) {
         a = b.take_action();
         opt_actions[j] = b.get_best_action();
         r = b.sample_return(a);
@@ -13,14 +12,13 @@ void Experiment::single_run(Bandit &b){
         returns[j] = r;
         b.update_q(r, a);
     }
-};
+}
 
-void Experiment::single_run_UCB(Bandit &b, double c){
-
+void Experiment::single_run_UCB(Bandit &b, const double c) {
     int a = 0;
     double r = 0;
 
-    for (int j=0; j<run_length; j++){
+    for (int j = 0; j < run_length; j++) {
         a = b.UCB(j, c);
         opt_actions[j] = b.get_best_action();
         r = b.sample_return(a);
@@ -28,14 +26,13 @@ void Experiment::single_run_UCB(Bandit &b, double c){
         returns[j] = r;
         b.update_q(r, a);
     }
-};
+}
 
-void Experiment::single_run_Boltzmann(Bandit &b, double T){
-
+void Experiment::single_run_Boltzmann(Bandit &b, const double T) {
     int a = 0;
     double r = 0;
 
-    for (int j=0; j<run_length; j++){
+    for (int j = 0; j < run_length; j++) {
         a = b.Boltzmann_exploration(T);
         opt_actions[j] = b.get_best_action();
         r = b.sample_return(a);
@@ -43,15 +40,14 @@ void Experiment::single_run_Boltzmann(Bandit &b, double T){
         returns[j] = r;
         b.update_q(r, a);
     }
-};
+}
 
 
-void Experiment::single_run_gradient(Bandit &b){
-
+void Experiment::single_run_gradient(Bandit &b) {
     int a = 0;
     double r = 0;
 
-    for (int j=0; j<run_length; j++){
+    for (int j = 0; j < run_length; j++) {
         a = b.gradientBanditAction();
         //std::cout<<"qua\n";
         opt_actions[j] = b.get_best_action();
@@ -67,14 +63,14 @@ void Experiment::single_run_gradient(Bandit &b){
     }
 };
 
-double* Experiment::get_returns(){
+double *Experiment::get_returns() {
     return returns;
-};
+}
 
 /*std::vector<double> Experiment::get_returns_vector(){
     return re;
 };
 */
-int* Experiment::get_opt_actions(){
+int *Experiment::get_opt_actions() {
     return opt_actions;
-};
+}
