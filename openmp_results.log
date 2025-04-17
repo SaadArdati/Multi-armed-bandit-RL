@@ -1,0 +1,29 @@
+=== OpenMP Multi-armed Bandit Simulation Results ===
+Configuration:
+Number of arms: 100
+Run length: 10000
+Number of runs: 10000
+Number of threads: 10
+Bandit type: Normal
+Exploration strategy: UCB (c=0.1)
+
+
+True arm values for run 0:
+
+Final Q values for run 0:
+
+True arm values for run 9999:
+
+Final Q values for run 9999:
+
+=== Performance Metrics ===
+Total execution time: 10.766 seconds
+
+Average reward and optimal action selection over time:
+Step	Avg Reward	Std Dev		% Optimal Actions
+1	-0.0009		0.9308		1.0200%
+10	-0.0007		0.8611		1.0600%
+50	-0.0056		0.6075		0.9900%
+100	-0.0105		1.0137		0.8700%
+500	2.5041		79.1543		96.7700%
+1000	2.5013		79.0652		97.2700%
